@@ -7,6 +7,7 @@ import winreg
 import options
 from odl_parser.odl import get_windows_live_id_from_odls
 from onedrive_api.onedrive_session import OneDriveSession
+from reparse_points.reparse_points import create_mount_point
 
 @dataclass
 class OneDriveInfo:
@@ -60,7 +61,7 @@ def main():
     print("Creating junctions to targets")
     for junction_name, target_path in junctions_names_to_target_paths.items():
         junction_path = os.path.join(onedrive_info.sync_folder, junction_name)
-        os.system(f"mklink /J {junction_path} {target_path} > nul 2>&1")
+        create_mount_point(junction_path, target_path)
 
     print("Extracting Windows Live ID token from OneDrive's logs")
     windows_live_token = extract_windows_live_token(onedrive_info)
