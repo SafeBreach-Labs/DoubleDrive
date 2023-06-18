@@ -22,15 +22,15 @@ ODL_FOLDER = os.path.join(ONEDRIVE_PER_USER_FOLDER, "logs\\Personal")
 
 def get_onedrive_info():
     hkcu_key = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
-    onedrive_personal_reg_key = winreg.OpenKey(hkcu_key, "Software\\Microsoft\\OneDrive\\Accounts\\Personal")
-    onedrive_sync_folder = winreg.QueryValueEx(onedrive_personal_reg_key, "UserFolder")[0]
+    
+    with winreg.OpenKey(hkcu_key, "Software\\Microsoft\\OneDrive\\Accounts\\Personal") as onedrive_personal_reg_key:
+        onedrive_sync_folder = winreg.QueryValueEx(onedrive_personal_reg_key, "UserFolder")[0]
 
-    onedrive_reg_key = winreg.OpenKey(hkcu_key, "Software\\Microsoft\\OneDrive")
-
-    onedrive_exe_path = winreg.QueryValueEx(onedrive_reg_key, "OneDriveTrigger")[0]
+    with winreg.OpenKey(hkcu_key, "Software\\Microsoft\\OneDrive") as onedrive_reg_key:
+        onedrive_exe_path = winreg.QueryValueEx(onedrive_reg_key, "OneDriveTrigger")[0]
+        onedrive_version = winreg.QueryValueEx(onedrive_reg_key, "Version")[0]
+    
     onedrive_program_folder = os.path.dirname(onedrive_exe_path)
-
-    onedrive_version = winreg.QueryValueEx(onedrive_reg_key, "Version")[0]
     onedrive_version_installation_folder = os.path.join(onedrive_program_folder, onedrive_version)
 
     return OneDriveInfo(onedrive_program_folder, onedrive_sync_folder, ODL_FOLDER, onedrive_exe_path, onedrive_version_installation_folder)
