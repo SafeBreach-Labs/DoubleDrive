@@ -1,3 +1,4 @@
+import os
 import argparse
 import uuid
 from temp_email import TempEmail
@@ -33,7 +34,8 @@ def main():
     for target_path in args.target_paths:
         junction_names_to_target_paths[str(uuid.uuid4())] = target_path
 
-    with open("options.py", "w") as f:
+    options_file = os.path.join(os.path.dirname(__file__), "options.py")
+    with open(options_file, "w") as f:
         f.write(f"TOKEN_DST_EMAIL_ADDRESS = \"{email_addr}\"\nIS_TEMP_EMAIL = {args.temp_email}\nTOKEN_FILE_NAME = \"{uuid.uuid4()}\"\nJUNCTION_NAMES_TO_TARGET_PATHS = {junction_names_to_target_paths}\nSHOULD_CREATE_ONEDRIVE_BINARIES_JUNCTION = {args.onedrive_binaries_junction}\nCMD_FILE_NAME = \"{uuid.uuid4()}\"\nQUICK_DELETE = {args.quick_delete}\n")
         if args.onedrive_binaries_junction:
             f.write(f"ONEDRIVE_VERSION_FOLDER_JUNCTION_NAME = \"{uuid.uuid4()}\"")

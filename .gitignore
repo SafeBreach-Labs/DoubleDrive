@@ -136,3 +136,6 @@ dmypy.json
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# OneDrive's DoubleDrive generated options
+onedrive_doubledrive/options.py

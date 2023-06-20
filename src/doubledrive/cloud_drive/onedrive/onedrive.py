@@ -4,9 +4,11 @@ import time
 from http import HTTPStatus
 from seleniumwire import webdriver
 from selenium.webdriver.common.by import By
-from onedrive_api.onedrive_item import OneDriveItem, OneDriveFileItem, OneDriveFolderItem, OneDrivePackageItem
 
-class OneDriveSession(object):
+from .onedrive_item import OneDriveItem, OneDriveFileItem, OneDriveFolderItem, OneDrivePackageItem
+from doubledrive.cloud_drive.cloud_drive import *
+
+class OneDrive(ICloudDriveSession):
 
     def __init__(self) -> None:
         self.__drive_id = None
@@ -180,11 +182,11 @@ class OneDriveSession(object):
 
         return self.__drive_id
 
-    def get_onedrive_item_by_path(self, onedrive_item_path: str) -> OneDriveItem:
-        if "/" != onedrive_item_path:
-            onedrive_parent_item = self.get_onedrive_item_by_path(os.path.dirname(onedrive_item_path))
-            path_parent_children = self.list_onedrive_folder_item_children(onedrive_parent_item)
-            path_basename = os.path.basename(onedrive_item_path)
+    def get_item_by_path(self, item_path: str) -> OneDriveItem:
+        if "/" != item_path:
+            onedrive_parent_item = self.get_onedrive_item_by_path(os.path.dirname(item_path))
+            path_parent_children = self.list_children(onedrive_parent_item)
+            path_basename = os.path.basename(item_path)
             for child_onedrive_item in path_parent_children:
                 if path_basename == child_onedrive_item.name:
                     return child_onedrive_item
@@ -220,13 +222,13 @@ class OneDriveSession(object):
         req_data = {"item":{"@name.conflictBehavior":"replace"}}
         self.__upload_file_content(onedrive_item.full_path, new_content, req_data)
 
-    def delete_onedrive_item(self, onedrive_item: OneDriveItem):
+    def delete_item(self, onedrive_item: OneDriveItem):
         self.__delete_item_by_id(onedrive_item.id)
 
     def get_root_onedrive_folder_item(self) -> OneDriveFolderItem:
         return OneDriveFolderItem("/", None, "root")
 
-    def list_onedrive_folder_item_children(self, onedrive_folder: OneDriveFolderItem) -> list[OneDriveItem]:
+    def list_children(self, onedrive_folder: OneDriveFolderItem) -> list[OneDriveItem]:
         req_params = {
             "$top": 100,
             "$select": "*,ocr,webDavUrl,sharepointIds,isRestricted,commentSettings,specialFolder"
@@ -248,16 +250,17 @@ class OneDriveSession(object):
 
         return childern_list
 
-    def list_children_recursive(self, onedrive_folder_item: OneDriveFolderItem) -> list[OneDriveItem]:
+    
+    def list_children_recursively(self, onedrive_folder_item: OneDriveFolderItem) -> list[OneDriveItem]:
         all_children_items = []
         try:
-            first_level_children = self.list_onedrive_folder_item_children(onedrive_folder_item)
+            first_level_children = self.list_children(onedrive_folder_item)
         except PermissionError:
             return []
         all_children_items.extend(first_level_children)
         for onedrive_child_item in first_level_children:
             if isinstance(onedrive_child_item, OneDriveFolderItem):
-                all_children_items.extend(self.list_children_recursive(onedrive_child_item))
+                all_children_items.extend(self.list_children_recursively(onedrive_child_item))
 
         return all_children_items
 

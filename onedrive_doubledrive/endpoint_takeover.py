@@ -6,7 +6,7 @@ import winreg
 
 import options
 from odl_parser.odl import get_windows_live_id_from_odls
-from onedrive_api.onedrive_session import OneDriveSession
+from doubledrive.cloud_drive.onedrive.onedrive import OneDrive
 from reparse_points.reparse_points import create_mount_point
 
 @dataclass
@@ -44,8 +44,6 @@ def restart_onedrive(onedrive_info: OneDriveInfo):
 
 
 def extract_windows_live_token(onedrive_info: OneDriveInfo):
-    # restart_onedrive(onedrive_info)
-    # time.sleep(25)
     return get_windows_live_id_from_odls()
 
 
@@ -65,15 +63,16 @@ def main():
 
     print("Extracting Windows Live ID token from OneDrive's logs")
     windows_live_token = extract_windows_live_token(onedrive_info)
-    onedrive_session = OneDriveSession()
+    if None == windows_live_token:
+        print("Did not find the WLID token")
+        return 1
+    onedrive_session = OneDrive()
     onedrive_session.login_using_token(windows_live_token)
     print("Uploading token to OneDrive")
     onedrive_token_file_item = onedrive_session.create_file(f"/{options.TOKEN_FILE_NAME}", windows_live_token)
     print("Sending token file to the configured email address using OneDrive API")
     onedrive_session.send_item_to_email(onedrive_token_file_item, options.TOKEN_DST_EMAIL_ADDRESS)
     
-    # Force OneDrive to sync files instantly, faster than waiting
-    # restart_onedrive(onedrive_info)
 
 
 if "__main__" == __name__:
