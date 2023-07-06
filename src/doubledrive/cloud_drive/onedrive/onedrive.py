@@ -13,6 +13,7 @@ class OneDrive(ICloudDriveSession):
     def __init__(self) -> None:
         self.__drive_id = None
         self.__http_session = requests.Session()
+        self.__is_creds_token = False
 
     def __item_json_to_onedrive_item(self, item_json: dict):
         parent_path = item_json["parentReference"]["path"].replace("/drive/root:", "")
@@ -22,7 +23,7 @@ class OneDrive(ICloudDriveSession):
         item_path = f"{parent_path}/{item_name}"
         
         if None != item_json.get("file", None):
-            onedrive_item = OneDriveFileItem(item_path, parent_id, item_id, item_json["size"])
+            onedrive_item = OneDriveFileItem(item_path, parent_id, item_id)
         elif None != item_json.get("folder", None):
             onedrive_item = OneDriveFolderItem(item_path, parent_id, item_id)
         elif None != item_json.get("package", None):
@@ -92,9 +93,11 @@ class OneDrive(ICloudDriveSession):
 
     def login_using_creds(self, username: str, password: str):
         self.__login_with_selenium(username, password)
+        self.__is_creds_token = True
 
     def login_using_token(self, token: str):
         self.__update_token(token)
+        self.__is_creds_token = False
 
     def get_token(self):
         return self.__session_token
@@ -184,7 +187,7 @@ class OneDrive(ICloudDriveSession):
 
     def get_item_by_path(self, item_path: str) -> OneDriveItem:
         if "/" != item_path:
-            onedrive_parent_item = self.get_onedrive_item_by_path(os.path.dirname(item_path))
+            onedrive_parent_item = self.get_item_by_path(os.path.dirname(item_path))
             path_parent_children = self.list_children(onedrive_parent_item)
             path_basename = os.path.basename(item_path)
             for child_onedrive_item in path_parent_children:

@@ -14,14 +14,14 @@ class OneDriveItem(CloudDriveItem):
 @dataclass
 class OneDriveFolderItem(OneDriveItem, CloudDriveFolderItem):
     def __init__(self, full_path: str, parent_id: str, id: str) -> None:
-        OneDriveItem.__init__(full_path, parent_id, id)
+        OneDriveItem.__init__(self, full_path, parent_id, id)
 
 @dataclass
 class OneDriveFileItem(OneDriveItem, CloudDriveFileItem):
     def __init__(self, full_path: str, parent_id: str, id: str) -> None:
-        OneDriveItem.__init__(full_path, parent_id, id)
+        OneDriveItem.__init__(self, full_path, parent_id, id)
 
 @dataclass
 class OneDrivePackageItem(OneDriveItem, CloudDriveFileItem):
     def __init__(self, full_path: str, parent_id: str, id: str) -> None:
-        OneDriveItem.__init__(full_path, parent_id, id)
+        OneDriveItem.__init__(self, full_path, parent_id, id)
