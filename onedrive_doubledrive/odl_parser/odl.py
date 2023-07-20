@@ -1,8 +1,4 @@
-import argparse
-import time
-import subprocess
 import base64
-import csv
 import datetime
 import glob
 import gzip
@@ -17,8 +13,7 @@ from datetime import date
 from construct import *
 from construct.core import Int32ul, Int64ul
 from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
-import xml.etree.ElementTree as ET
+from Crypto.Util.Padding import unpad
 
 control_chars = "".join(map(chr, range(0,32))) + "".join(map(chr, range(127,160)))
 not_control_char_re = re.compile(f"[^{control_chars}]" + "{4,}")
@@ -337,7 +332,7 @@ def process_odl(path, map, show_all_data):
 
 ODL_PER_USER_FOLDER = os.path.expandvars(r"%localappdata%\Microsoft\OneDrive\logs\Personal")
 
-def get_windows_live_id_from_odls():
+def get_odl_rows():
     odl_folder = os.path.abspath(ODL_PER_USER_FOLDER)
     obfuscation_map_path = os.path.join(odl_folder, "ObfuscationStringMap.txt")
     if not os.path.exists(obfuscation_map_path):
@@ -363,16 +358,4 @@ def get_windows_live_id_from_odls():
         if date.today() == timestamp:
             odl_rows.extend(process_odl(path, map, False))
 
-    latest_token_odl = None
-    for odl in odl_rows[::-1]:
-        if "NotificationServiceImpl::InternalConnect" == odl["Function"] or "CWNPTransportImpl::Connect" == odl["Function"]:
-            latest_token_odl = odl
-            break
- 
-    if None == latest_token_odl:
-        return None
-
-    root_xml_element = ET.fromstring(latest_token_odl["Params_Decoded"][1])
-    wlid_ticket = root_xml_element.find("ssl-compact-ticket").text
-
-    return f"WLID1.1 {wlid_ticket}"
+    return odl_rows

