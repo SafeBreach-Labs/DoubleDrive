@@ -237,8 +237,7 @@ class OneDrive(ICloudDriveSession):
             "$select": "*,ocr,webDavUrl,sharepointIds,isRestricted,commentSettings,specialFolder"
         }
 
-        # OneDrive returns 200 OK for listing of some folders just without the value parameter that
-        # lists the children so we need to check that and renew the token if that happens
+        children_list = []
         next_page_request_url = f"https://api.onedrive.com/v1.0/drives/me/items/{onedrive_folder.id}/children"
         while next_page_request_url:
             res = self.__safe_http_request("GET", next_page_request_url, json=req_params)
@@ -246,12 +245,11 @@ class OneDrive(ICloudDriveSession):
             res_children_list = res_json["value"]
             next_page_request_url = res_json.get("@odata.nextLink", None)
 
-        childern_list = []
-        for child_element in res_children_list:
-            onedrive_item = self.__item_json_to_onedrive_item(child_element)
-            childern_list.append(onedrive_item)
+            for child_element in res_children_list:
+                onedrive_item = self.__item_json_to_onedrive_item(child_element)
+                children_list.append(onedrive_item)
 
-        return childern_list
+        return children_list
 
     
     def list_children_recursively(self, onedrive_folder_item: OneDriveFolderItem) -> list[OneDriveItem]:
