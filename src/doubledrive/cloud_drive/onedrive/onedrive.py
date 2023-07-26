@@ -13,7 +13,6 @@ class OneDrive(ICloudDriveSession):
     def __init__(self) -> None:
         self.__drive_id = None
         self.__http_session = requests.Session()
-        self.__is_creds_token = False
 
     def __item_json_to_onedrive_item(self, item_json: dict):
         parent_path = item_json["parentReference"]["path"].replace("/drive/root:", "")
@@ -73,8 +72,6 @@ class OneDrive(ICloudDriveSession):
             else:
                 break
         
-        if 409 == res.status_code:
-            print(res.json())
         res.raise_for_status()
         return res
 
@@ -97,7 +94,6 @@ class OneDrive(ICloudDriveSession):
 
     def login_using_token(self, token: str):
         self.__update_token(token)
-        self.__is_creds_token = False
 
     def get_token(self):
         return self.__session_token
@@ -195,7 +191,7 @@ class OneDrive(ICloudDriveSession):
                     return child_onedrive_item
             raise RuntimeError("Could not find OneDrive item")
         else:
-            return self.get_root_onedrive_folder_item()
+            return self.get_root_folder_item()
 
     def read_shared_file_content(self, onedrive_drive_id: str, onedrive_item_id: str, auth_key: str) -> bytes:
         req_data = {
@@ -228,7 +224,7 @@ class OneDrive(ICloudDriveSession):
     def delete_item(self, onedrive_item: OneDriveItem):
         self.__delete_item_by_id(onedrive_item.id)
 
-    def get_root_onedrive_folder_item(self) -> OneDriveFolderItem:
+    def get_root_folder_item(self) -> OneDriveFolderItem:
         return OneDriveFolderItem("/", None, "root")
 
     def list_children(self, onedrive_folder: OneDriveFolderItem) -> list[OneDriveItem]:
@@ -254,10 +250,8 @@ class OneDrive(ICloudDriveSession):
     
     def list_children_recursively(self, onedrive_folder_item: OneDriveFolderItem) -> list[OneDriveItem]:
         all_children_items = []
-        try:
-            first_level_children = self.list_children(onedrive_folder_item)
-        except PermissionError:
-            return []
+        first_level_children = self.list_children(onedrive_folder_item)
+        
         all_children_items.extend(first_level_children)
         for onedrive_child_item in first_level_children:
             if isinstance(onedrive_child_item, OneDriveFolderItem):
