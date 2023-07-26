@@ -1,6 +1,7 @@
+import os
 from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
-import os
+
 
 @dataclass
 class CloudDriveItem:
@@ -51,17 +52,17 @@ class ICloudDriveSession(ABC):
         pass
 
     @abstractmethod
-    def delete_item(cloud_item: CloudDriveItem):
+    def delete_item(self, cloud_item: CloudDriveItem):
         pass
 
     @abstractmethod
-    def list_children(cloud_folder_item: CloudDriveFolderItem) -> list[CloudDriveItem]:
+    def list_children(self, cloud_folder_item: CloudDriveFolderItem) -> list[CloudDriveItem]:
         pass
 
     @abstractmethod
-    def list_children_recursively(cloud_folder_item: CloudDriveFolderItem) -> list[CloudDriveItem]:
+    def list_children_recursively(self, cloud_folder_item: CloudDriveFolderItem) -> list[CloudDriveItem]:
         pass
 
     @abstractmethod
-    def get_item_by_path(item_path: str) -> CloudDriveItem:
+    def get_item_by_path(self, item_path: str) -> CloudDriveItem:
         pass
