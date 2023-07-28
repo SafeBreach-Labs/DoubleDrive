@@ -6,7 +6,7 @@ import re
 
 import options
 from doubledrive.cloud_ransomware.onedrive_ransomware import OneDriveRansomware
-from temp_email import TempEmail
+from doubledrive.endpoint_takeover_utils.temp_email import TempEmail
 from doubledrive.cloud_drive.onedrive.onedrive import OneDrive
 from doubledrive.cloud_drive.onedrive.onedrive_item import OneDriveFileItem
 
@@ -77,7 +77,6 @@ def parse_args():
         parser.error("--command-uac-bypass cannot be used without --run-command")
 
     return args
-
 
 
 def main():

