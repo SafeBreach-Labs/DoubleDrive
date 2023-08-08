@@ -10,9 +10,10 @@ import tempfile
 from minidump.utils.createminidump import create_dump
 import xml.etree.ElementTree as ET
 import subprocess
+import signal
 
-from odl_parser.odl import get_odl_rows
-from doubledrive.endpoint_takeover_utils.endpoint_info.onedrive.onedrive_info import get_onedrive_info
+from .odl_parser.odl import get_odl_rows
+from doubledrive.endpoint_takeover_utils.endpoint_info.onedrive.onedrive_info import get_onedrive_info, OneDriveInfo
 
 
 WAIT_FOR_ONEDRIVE_TO_LOG_TOKEN_DELAY = 10
@@ -46,7 +47,7 @@ def restart_onedrive(onedrive_info: OneDriveInfo, skip_shutdown: bool = False):
     if not skip_shutdown:
         current_user = win32api.GetUserNameEx(win32con.NameSamCompatible)
         onedrive_pid = get_process_pid_by_name(ONEDRIVE_PROCESS_NAME, username=current_user)
-        os.kill(onedrive_pid)
+        os.kill(onedrive_pid, signal.SIGTERM)
     process = subprocess.Popen(f"\"{onedrive_info.main_exe_path}\"", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
