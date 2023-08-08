@@ -138,4 +138,4 @@ dmypy.json
 *.vsix
 
 # OneDrive's DoubleDrive generated options
-onedrive_doubledrive/options.py
+onedrive_doubledrive/config.yaml
