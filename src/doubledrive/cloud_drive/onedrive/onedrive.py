@@ -2,19 +2,33 @@ import requests
 import os
 import time
 from http import HTTPStatus
-from seleniumwire import webdriver
-from selenium.webdriver.common.by import By
 
 from .onedrive_item import OneDriveItem, OneDriveFileItem, OneDriveFolderItem, OneDrivePackageItem
 from doubledrive.cloud_drive.cloud_drive import *
 
 class OneDrive(ICloudDriveSession):
+    """
+    A session with a OneDrive account 
+    """
 
     def __init__(self) -> None:
+        """
+        Creates a OneDrive instance
+        """
         self.__drive_id = None
         self.__http_session = requests.Session()
 
-    def __item_json_to_onedrive_item(self, item_json: dict):
+    def __item_json_to_onedrive_item(self, item_json: dict) -> OneDriveItem:
+        """
+        Converts the JSON structure that is usually returned from OneDrive's servers for
+        Describing an item in the cloud storage to the specific sub-class of OneDriveItem
+        that it matches to
+
+        :param item_json: The JSON structure that is returned by OneDrive to describe an
+            item on its storage
+
+        :return: A OneDriveItem that represents the item described in the JSON structure
+        """
         parent_path = item_json["parentReference"]["path"].replace("/drive/root:", "")
         parent_id = item_json["parentReference"]["id"]
         item_name = item_json["name"]
@@ -32,34 +46,25 @@ class OneDrive(ICloudDriveSession):
         
         return onedrive_item
 
-    def __login_with_selenium(self, username, password):
-        options = {
-            "suppress_connection_errors": True,
-            "verify_ssl": False
-        }
-        driver = webdriver.Chrome(seleniumwire_options=options)
-        driver.get(f"https://login.live.com?username={username}")
-        time.sleep(3)
-        password_element = driver.find_element(By.CSS_SELECTOR, "input[type=password]")
-        password_element.send_keys(password)
-        password_element.submit()
-        try:
-            driver.find_element(By.ID, "idSIButton9").click()
-        except:
-            pass
-        driver.get("https://onedrive.live.com?id=root")
-        time.sleep(5)
-        for request in driver.requests:
-            if request.url.startswith("https://api.onedrive.com/") and "operations" in request.url:
-                self.__update_token(request.headers.get("authorization"))
-        
-        driver.quit()
-
     def __update_token(self, token):
+        """
+        Updates the token that the session of this object uses when it attempts to send API
+        requests to OneDrive's servers
+
+        :param token: The new token to use
+        """
         self.__session_token = token
         self.__http_session.headers.update({"Authorization": self.__session_token})
 
     def __safe_http_request(self, *args, **kwargs) -> requests.Response:
+        """
+        Sends an http request using the self.__http_session object, retries
+        up to 4 times if temporary exception occur and finally raises an
+        exception if the status code is an error.
+
+        Note - This method supports all the arguments of the requests.Session.request() method
+        :return: The requests.Response option returned from the requests module
+        """
         retries = 4
         for i in range(retries):
             try:
@@ -76,6 +81,18 @@ class OneDrive(ICloudDriveSession):
         return res
 
     def __upload_file_content(self, onedrive_file_path: str, file_content: bytes, req_data: dict):
+        """
+        Uploads a content of a file to the OneDrive cloud storage.
+
+        :param onedrive_file_path: The path of the target file for the upload
+        :param file_content: The content to upload
+        :param req_data: A dict of OneDrive's upload settings
+            by now, the parameter that I identified is meant to
+            tell OneDrive's server whether to fail when a file with this
+            path exists or to just modify it. Its name is '"@name.conflictBehavior'
+            and it can be set to 'replace' or 'fail'
+        :return: _description_
+        """
         res = self.__safe_http_request("POST", f"https://api.onedrive.com/v1.0/drives/me/items/root:{onedrive_file_path}:/oneDrive.createUploadSession", json=req_data)
         res_json = res.json()
         upload_url = res_json["uploadUrl"]
@@ -87,10 +104,6 @@ class OneDrive(ICloudDriveSession):
 
     def __delete_item_by_id(self, item_id):
         res = self.__safe_http_request("DELETE", f"https://api.onedrive.com/v1.0/drives/me/items/{item_id}")
-
-    def login_using_creds(self, username: str, password: str):
-        self.__login_with_selenium(username, password)
-        self.__is_creds_token = True
 
     def login_using_token(self, token: str):
         self.__update_token(token)
