@@ -49,8 +49,8 @@ def main():
     if args.onedrive_binaries_junction:
         config[ConfigKey.ONEDRIVE_VERSION_FOLDER_JUNCTION_NAME.value] = str(uuid.uuid4())
         
-        with open('config.yaml', 'w') as f:
-            yaml.dump(config, f)
+    with open('config.yaml', 'w') as f:
+        yaml.dump(config, f)
 
 
 
