@@ -52,10 +52,6 @@ def main():
         with open('config.yaml', 'w') as f:
             yaml.dump(config, f)
 
-        # f.write(f"TOKEN_DST_EMAIL_ADDRESS = \"{email_addr}\"\nIS_TEMP_EMAIL = {args.temp_email}\nTOKEN_FILE_NAME = \"{uuid.uuid4()}\"\nJUNCTION_NAMES_TO_TARGET_PATHS = {junction_names_to_target_paths}\nSHOULD_CREATE_ONEDRIVE_BINARIES_JUNCTION = {args.onedrive_binaries_junction}\nCMD_FILE_NAME = \"{uuid.uuid4()}\"\nQUICK_DELETE = {args.quick_delete}\n")
-        # if args.onedrive_binaries_junction:
-        #     f.write(f"ONEDRIVE_VERSION_FOLDER_JUNCTION_NAME = \"{uuid.uuid4()}\"")
-
 
 
 if "__main__" == __name__:
