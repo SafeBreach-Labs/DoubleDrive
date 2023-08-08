@@ -1,9 +1,9 @@
 import winreg
 import os
-import options
 import time
 import json
 
+from config import get_configs, ConfigKey
 
 def run_command_with_uac_bypass(command):
     hkcu_key = winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER)
@@ -20,7 +20,7 @@ def get_onedrive_sync_folder():
     return onedrive_sync_folder
 
 def main():
-    file_name = os.path.join(get_onedrive_sync_folder(), options.CMD_FILE_NAME)
+    file_name = os.path.join(get_onedrive_sync_folder(), get_configs[ConfigKey.CMD_FILE_NAME.value])
     if os.path.exists(file_name):
         original_time = os.path.getmtime(file_name)
     else:

