@@ -15,9 +15,9 @@ python .\config_setup.py --temp-email --target-paths C:\Users\Admin\Documents C:
 pyinstaller --onefile --add-data "config.yaml;." .\endpoint_takeover.py; pyinstaller --onefile --add-data "config.yaml;." .\onedrive_doubledrive.py
 ```
 4. A folder named `dist` will be created. Inside you can find `endpoint_takeover.exe` and `onedrive_doubledrive.exe`
-5. Transfer `endpoint_takeover.exe` to the victim computer and run it. This will create junctions in the OneDrive sync folder that point towards the target folders the contain files to encrypt. It will also extract the WLID token of the OneDrive account and exfiltrate it by sharing it with the email address chosen in the configration setup stage.
+5. Transfer `endpoint_takeover.exe` to the victim computer and run it. This will create junctions in the OneDrive sync folder that point towards the target folders the contain files to encrypt. It will also extract the WLID token of the OneDrive account and exfiltrate it by sharing it with the email address chosen in the configuration setup stage.
 > Note - If you chose a temporary email address you should continue to the next step as soon as possible because the generated temporary email address that DoubleDrive uses works for a limited amount of time.
-6. Execute `onedrive_doubledrive` with the preffered flags on the attacker's computer. For example:
+6. Execute `onedrive_doubledrive` with the preferred flags on the attacker's computer. For example:
 ```cmd
 onedrive_doubledrive.exe --remote-ransomware
 ```
