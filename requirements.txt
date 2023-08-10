@@ -1,0 +1,9 @@
+construct==2.10.68
+cryptography==41.0.3
+minidump==0.0.21
+psutil==5.9.5
+pycryptodome==3.18.0
+PyYAML==6.0.1
+Requests==2.31.0
+setuptools==65.5.0
+pywin32==306
