@@ -80,7 +80,7 @@ class OneDrive(ICloudDriveSession):
         res.raise_for_status()
         return res
 
-    def __upload_file_content(self, onedrive_file_path: str, file_content: bytes, req_data: dict):
+    def __upload_file_content(self, onedrive_file_path: str, file_content: bytes, req_data: dict) -> requests.Response:
         """
         Uploads a content of a file to the OneDrive cloud storage.
 
@@ -91,7 +91,7 @@ class OneDrive(ICloudDriveSession):
             tell OneDrive's server whether to fail when a file with this
             path exists or to just modify it. Its name is '"@name.conflictBehavior'
             and it can be set to 'replace' or 'fail'
-        :return: _description_
+        :return: The respond from the server
         """
         res = self.__safe_http_request("POST", f"https://api.onedrive.com/v1.0/drives/me/items/root:{onedrive_file_path}:/oneDrive.createUploadSession", json=req_data)
         res_json = res.json()
@@ -103,15 +103,35 @@ class OneDrive(ICloudDriveSession):
         return res
 
     def __delete_item_by_id(self, item_id):
+        """
+        Deletes an item from the cloud storage.
+
+        :param item_id: The ID of the item to delete
+        """
         res = self.__safe_http_request("DELETE", f"https://api.onedrive.com/v1.0/drives/me/items/{item_id}")
 
     def login_using_token(self, token: str):
+        """
+        \"Logins\" into a OneDrive account using an access token for it.
+
+        :param token: The token to login with. Should be given with its prefix. For example: \"Bearer ...\" or \"WLID1.1 t=...\"
+        """
         self.__update_token(token)
 
     def get_token(self):
+        """
+        Returns the access token used for the authenticating with OneDrive.
+        """
         return self.__session_token
     
-    def rename_item(self, onedrive_item: OneDriveItem, new_name: str):
+    def rename_item(self, onedrive_item: OneDriveItem, new_name: str) -> OneDriveItem:
+        """
+        Renames an item in the cloud storage.
+
+        :param onedrive_item: The OneDrive item to rename
+        :param new_name: The new name
+        :return: The new item after it was renamed
+        """
         params = {
             "@name.conflictBehavior":"replace",
             "name": new_name,
@@ -121,12 +141,24 @@ class OneDrive(ICloudDriveSession):
         return self.__item_json_to_onedrive_item(res.json())  
     
     def cancel_all_onedrive_changes_subscriptions(self):
+        """
+        Cancels all the subscriptions for syncing with the OneDrive account. In other words, 
+        all the OneDrive applications that sync local directories with the OneDrive account will
+        stop syncing files with the account until they are restarted.
+        """
         res = self.__safe_http_request("GET", "https://api.onedrive.com/v1.0/drive/root/subscriptions")
         for subscription in res.json()["value"]:
             subscription_id = subscription["id"]
             res = self.__safe_http_request("DELETE", f"https://api.onedrive.com/v1.0/drive/root/subscriptions/{subscription_id}")
 
     def send_item_to_email(self, onedrive_item: OneDriveItem, email: str):
+        """
+        Shares a OneDrive item with an email. This method can be used for sharing an item with an email
+        address that does not belong to a Microsoft account.
+
+        :param onedrive_item: The OneDrive item to share.
+        :param email: The email to share the item with.
+        """
         headers = {
             "AppId": "1276168582",
             "ClientAppId": "1276168582",
@@ -147,13 +179,39 @@ class OneDrive(ICloudDriveSession):
         res = self.__safe_http_request("POST", "https://skyapi.live.net/API/2/SetPermissions", json=params, headers=headers)
 
     def get_user_preferences(self):
+        """
+        Returns the user's email preferences.
+        """
         res = self.__safe_http_request("GET", f"https://api.onedrive.com/v1.0/drive/userPreferences/email")
         return res.json()
     
-    def patch_user_preferences(self, new_preferences):
+    def patch_user_preferences(self, new_preferences: dict):
+        """
+        Changes the user's email preferences. Supported settings with example values:
+        {
+            ActivitiesDigest: true
+            DocumentDigestEmail: true
+            MassDelete: true
+            PhotoStreamAccessGranted: true
+            PhotoStreamComment: true
+            PhotoStreamInviteAccepted: true
+            PhotoStreamNewPost: true
+            PhotoStreamReaction: true
+            PremiumPositioning: true
+            RansomwareDetection: true
+            WeekendRecap: false
+        }
+
+        :param new_preferences: A dict of the new preferences
+        """
         res = self.__safe_http_request("PATCH", f"https://api.onedrive.com/v1.0/drive/userPreferences/email", json=new_preferences)
 
-    def delete_from_recycle_bin(self, onedrive_item_id_list):
+    def delete_from_recycle_bin(self, onedrive_item_id_list: list[OneDriveItem]):
+        """
+        Delete specific OneDrive items from the recycle bin.
+
+        :param onedrive_item_id_list: A list of the items to delete
+        """
         headers = {
             "AppId": "1276168582",
             "ClientAppId": "1276168582",
@@ -173,6 +231,9 @@ class OneDrive(ICloudDriveSession):
         res = self.__safe_http_request("POST", f"https://skyapi.live.net/API/2/DeleteItems", headers=headers, json=params)
 
     def empty_recycle_bin(self):
+        """
+        Empties the recycle bin
+        """
         headers = {
             "AppId": "1276168582",
             "ClientAppId": "1276168582",
@@ -186,6 +247,9 @@ class OneDrive(ICloudDriveSession):
         res = self.__safe_http_request("POST", f"https://skyapi.live.net/API/2/DeleteAll", headers=headers)
 
     def get_drive_id(self):
+        """
+        Returns the ID that identifies the drive of the OneDrive cloud storage
+        """
         if None != self.__drive_id:
             return self.__drive_id
         
@@ -195,6 +259,12 @@ class OneDrive(ICloudDriveSession):
         return self.__drive_id
 
     def get_item_by_path(self, item_path: str) -> OneDriveItem:
+        """
+        Returns an item by its path on the cloud storage.
+
+        :param item_path: The item's path
+        :raises RuntimeError: If the given path was not found
+        """
         if "/" != item_path:
             onedrive_parent_item = self.get_item_by_path(os.path.dirname(item_path))
             path_parent_children = self.list_children(onedrive_parent_item)
@@ -207,6 +277,20 @@ class OneDrive(ICloudDriveSession):
             return self.get_root_folder_item()
 
     def read_shared_file_content(self, onedrive_drive_id: str, onedrive_item_id: str, auth_key: str) -> bytes:
+        """
+        Reads the content of a shared file by its ID, the ID of its OneDrive drive and using
+        an authentication key that was issued specifically for the purpose of the share.
+
+        The parameters of this call can all be extracted from an email that was sent as a result
+        of sharing a file with OneDrive.
+
+        Note - You do not have to be logged in in order to use this function.
+
+        :param onedrive_drive_id: The ID of the OneDrive drive where that shared file is located
+        :param onedrive_item_id: The ID of the shared file
+        :param auth_key: The authentication key that was issued for the purpose of the share
+        :return: The content of the shared file
+        """
         req_data = {
             "select": "id,@content.downloadUrl",
             "authkey": auth_key,
@@ -216,7 +300,13 @@ class OneDrive(ICloudDriveSession):
         res = self.__safe_http_request("GET", res.json()["@content.downloadUrl"])
         return res.content
     
-    def read_file_content(self, onedrive_item: OneDriveItem) -> bytes:
+    def read_file_content(self, onedrive_item: OneDriveFileItem) -> bytes:
+        """
+        Read the content of a file in OneDrive
+
+        :param onedrive_item: The file to read
+        :return: The content of the file
+        """
         req_data = {"select": "@content.downloadUrl"}
 
         res = self.__safe_http_request("GET", f"https://api.onedrive.com/v1.0/drives/me/items/{onedrive_item.id}", json=req_data)
@@ -224,23 +314,51 @@ class OneDrive(ICloudDriveSession):
         return res.content
 
     def create_file(self, onedrive_file_path: str, file_content: bytes, modify_if_exists: bool = False) -> OneDriveFileItem:
+        """
+        Creates a file in OneDrive.
+
+        :param onedrive_file_path: The path for the new file.
+        :param file_content: The content of the new file
+        :param modify_if_exists: True if this function should modify the path of the given file in case it already exists, defaults to False
+        :return: The new file
+        """
         conflict_behavior = "replace" if modify_if_exists else "fail"
         req_data = {"item":{"@name.conflictBehavior":conflict_behavior}}
         upload_response = self.__upload_file_content(onedrive_file_path, file_content, req_data)
         upload_response_json = upload_response.json()
         return self.__item_json_to_onedrive_item(upload_response_json)
 
-    def modify_file_content(self, onedrive_item: OneDriveItem, new_content: bytes):
+    def modify_file_content(self, onedrive_item: OneDriveFileItem, new_content: bytes):
+        """
+        Modifies a file content in OneDrive.
+
+        :param onedrive_item: The file to modify
+        :param new_content: The new content to overwrite the file with
+        """
         req_data = {"item":{"@name.conflictBehavior":"replace"}}
         self.__upload_file_content(onedrive_item.full_path, new_content, req_data)
 
     def delete_item(self, onedrive_item: OneDriveItem):
+        """
+        Deletes an item in OneDrive.
+
+        :param onedrive_item: The item to delete
+        """
         self.__delete_item_by_id(onedrive_item.id)
 
     def get_root_folder_item(self) -> OneDriveFolderItem:
+        """
+        Returns the root folder in OneDrive.
+        """
         return OneDriveFolderItem("/", None, "root")
 
     def list_children(self, onedrive_folder: OneDriveFolderItem) -> list[OneDriveItem]:
+        """
+        Lists all the direct children of a folder in OneDrive (only at the first level).
+
+        :param onedrive_folder: The folder to list
+        :return: A list containing all the children of the given folder
+        """
         req_params = {
             "$top": 100,
             "$select": "*,ocr,webDavUrl,sharepointIds,isRestricted,commentSettings,specialFolder"
@@ -262,6 +380,12 @@ class OneDrive(ICloudDriveSession):
 
     
     def list_children_recursively(self, onedrive_folder_item: OneDriveFolderItem) -> list[OneDriveItem]:
+        """
+        Lists all the children of a folder in OneDrive recursively (at all levels)
+
+        :param onedrive_folder_item: The folder to list
+        :return: A list of all the folder's children
+        """
         all_children_items = []
         first_level_children = self.list_children(onedrive_folder_item)
         
