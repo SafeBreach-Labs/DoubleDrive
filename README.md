@@ -1,5 +1,5 @@
 # DoubleDrive
-A fully-undetectable ransomware that utilizes Cloud Drive Services to encrypt target files. Presented at Black Hat USA 2023 Briefing under the title - [**One Drive, Double Agent: Clouded OneDrive Turns Sides**](TODO: add link)
+A fully-undetectable ransomware that utilizes Cloud Drive Services to encrypt target files. Presented at Black Hat USA 2023 Briefing under the title - [**One Drive, Double Agent: Clouded OneDrive Turns Sides**](https://www.blackhat.com/us-23/briefings/schedule/index.html#one-drive-double-agent-clouded-onedrive-turns-sides-32695)
 
 ## DoubleDrive Python Package
 Implements most of the logic and tools that a DoubleDrive variant needs. In order to create a DoubleDrive variant for a certain cloud storage service, the creator must create 2 different executables using this library's tools:
