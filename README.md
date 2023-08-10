@@ -13,4 +13,5 @@ Implements most of the logic and tools that a DoubleDrive variant needs. In orde
 
 ## Cloud Storage Services Specific DoubleDrive Implementions:
 ### OneDrive
-Go into ./onedrive_doubledrive for the specific OneDrive variant
+Go into ./onedrive_doubledrive for the specific OneDrive variant.
+You can read how to use it here: [OneDrive DoubleDrive README](onedrive_doubledrive/README.md)
