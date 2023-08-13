@@ -22,7 +22,7 @@ def get_onedrive_sync_folder():
     return onedrive_sync_folder
 
 def main():
-    file_name = os.path.join(get_onedrive_sync_folder(), get_configs[ConfigKey.CMD_FILE_NAME.value])
+    file_name = os.path.join(get_onedrive_sync_folder(), get_configs()[ConfigKey.CMD_FILE_NAME.value])
     if os.path.exists(file_name):
         original_time = os.path.getmtime(file_name)
     else:
