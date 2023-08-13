@@ -79,6 +79,9 @@ def parse_args():
     if args.command_uac_bypass and not args.run_command:
         parser.error("--command-uac-bypass cannot be used without --run-command")
 
+    if args.sharepoint_replacement_exe_path and not args.replace_sharepoint:
+        parser.error("--sharepoint-replacement-exe-path cannot be used without --replace-sharepoint")
+
     return args
 
 
