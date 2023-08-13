@@ -34,3 +34,6 @@ onedrive_doubledrive.exe --remote-ransomware
    ```cmd
    onedrive_doubledrive.exe --run-command "vssadmin delete shadows /all /quiet" --command-uac-bypass
    ```
+
+## Update: SharePoint Executable Command Execution Technique
+As you can read in the blog post I published about this research, the technique of replacing the SharePoint executable located in OneDrive's installation folder depends on the fact that `OneDrive.exe` runs `Microsoft.SharePoint.exe` when it starts. After I created this technique, and I reported my findings to all the relevant vendors, it now seems that in newer versions of OneDrive the `Microsoft.SharePoint.exe` executable is not run anymore every time `OneDrive.exe` starts. Seems like there are other triggers for `OneDrive.exe` to run `Microsoft.SharePoint.exe`, which I have not investigated. If you wish, you can alter DoubleDrive's code to write the `follow_attacker_commands.exe` executable to the current user's startup folder instead.
