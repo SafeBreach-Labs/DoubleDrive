@@ -75,12 +75,6 @@ def parse_args():
     parser.add_argument("--run-command", help="A command to pass to the malicious executable that replaces SharePoint's executable on the endpoint")
     parser.add_argument("--command-uac-bypass", help="If specified, first bypasses UAC on the target and then runs the command given in --run-command", action="store_true")
     args = parser.parse_args()
-    
-    if args.command_uac_bypass and not args.run_command:
-        parser.error("--command-uac-bypass cannot be used without --run-command")
-
-    if args.sharepoint_replacement_exe_path and not args.replace_sharepoint:
-        parser.error("--sharepoint-replacement-exe-path cannot be used without --replace-sharepoint")
 
     return args
 
