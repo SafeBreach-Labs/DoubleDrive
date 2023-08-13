@@ -21,7 +21,7 @@ def get_token_from_temp_email():
     temp_email = TempEmail(get_configs()[ConfigKey.TOKEN_DST_EMAIL_ADDRESS.value])
     messages = temp_email.get_messages()
     if 0 == len(messages):
-        LookupError("The temp email's inbox is empty. Try again in 1-2 minutes")
+        raise LookupError("The temp email's inbox is empty. Try again in 1-2 minutes")
     last_message = messages[0]
     re_match = re.search("\"https://1drv.ms.*?\"", last_message.content)
     url = re_match.group().replace("\"", "")
