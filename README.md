@@ -18,6 +18,10 @@ Implements most of the logic and tools that a DoubleDrive variant needs. In orde
 Go into ./onedrive_doubledrive for the specific OneDrive variant.
 You can read how to use it here: [OneDrive DoubleDrive README](onedrive_doubledrive/README.md)
 
+### Google Drive
+Go into ./google_drive_doubledrive for the specific Google Drive variant.
+You can read how to use it here: [Google Drive DoubleDrive README](google_drive_doubledrive/README.md)
+
 ## Author - Or Yair
 * LinkedIn - [Or Yair](https://www.linkedin.com/in/or-yair/)
 * Twitter - [@oryair1999](https://twitter.com/oryair1999)
